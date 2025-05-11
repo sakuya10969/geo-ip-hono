@@ -8,7 +8,7 @@ const app = new Hono()
 app.use('*', cacheMiddleware)
 
 // Geo-IPルートを登録
-app.route('/', geoIp)
+app.route('/geo-ip', geoIp)
 
 app.get('/', (c) => {
   return c.json({ message: 'Geo-IP APIへようこそ！' })
