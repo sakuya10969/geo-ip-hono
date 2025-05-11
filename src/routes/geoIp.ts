@@ -10,7 +10,7 @@ geoIp.get('/', (c) => {
   return c.json(ResponseFormatter.formatWelcomeResponse())
 })
 
-// 自分のIPを取得 (より具体的なルートを先に定義)
+// 自分のIPを取得
 geoIp.get('/self', async (c) => {
   try {
     const selfData = await ipService.fetchSelfIp()
@@ -52,7 +52,7 @@ geoIp.get('/random', async (c) => {
   }
 })
 
-// Geo-IPエンドポイント (最も一般的なルートを最後に定義)
+// Geo-IPエンドポイント
 geoIp.get('/:ip', async (c) => {
   const ip = c.req.param('ip')
 
