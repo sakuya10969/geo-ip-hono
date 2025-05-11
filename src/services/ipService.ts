@@ -1,58 +1,52 @@
+import axios from 'axios'
 import { isValidIp } from '../utils/ipValidator'
 
 export class IpService {
   private static readonly API_BASE_URL = 'https://ipapi.co'
+  private static readonly DEFAULT_ERROR_MESSAGE = '無効なIPアドレス'
 
+  private async makeApiRequest(url: string, errorContext: string) {
+    try {
+      const response = await axios.get(url)
+      const data = response.data
+
+      if (data.error) {
+        throw new Error(data.reason || IpService.DEFAULT_ERROR_MESSAGE)
+      }
+
+      return data
+    } catch (error: any) {
+      throw new Error(`${errorContext}: ${error.message}`)
+    }
+  }
+
+  // IP情報を取得
   async fetchGeoIp(ip: string) {
     const url = `${IpService.API_BASE_URL}/${ip}/json/`
-    const response = await fetch(url)
-
-    if (!response.ok) {
-      throw new Error('Geo-IP API呼び出し失敗')
-    }
-
-    const data = await response.json()
-
-    if (data.error) {
-      throw new Error(data.reason || '無効なIPアドレス')
-    }
-
-    return data
+    return this.makeApiRequest(url, 'Geo-IP API呼び出し失敗')
   }
 
+  // 自分のIP情報を取得 
   async fetchSelfIp() {
     const url = `${IpService.API_BASE_URL}/json/`
-    const response = await fetch(url)
-
-    if (!response.ok) {
-      throw new Error('自己IP情報取得失敗')
-    }
-
-    return await response.json()
+    return this.makeApiRequest(url, '自己IP情報取得失敗')
   }
 
+  // ホスト名を取得
   async fetchHostname(ip: string) {
     const url = `${IpService.API_BASE_URL}/${ip}/json/`
-    const response = await fetch(url)
-
-    if (!response.ok) {
-      throw new Error('ホスト名取得失敗')
-    }
-
-    const data = await response.json()
-
-    if (data.error) {
-      throw new Error(data.reason || '無効なIPアドレス')
-    }
-
+    const data = await this.makeApiRequest(url, 'ホスト名取得失敗')
     return data.hostname || 'ホスト名が見つかりません'
   }
 
+  // ランダムIP生成
   getRandomIp(): string {
-    return Array(4).fill(0).map(() => Math.floor(Math.random() * 256)).join('.')
+    const generateOctet = () => Math.floor(Math.random() * 256)
+    return Array(4).fill(0).map(generateOctet).join('.')
   }
 
+  // IPアドレスバリデーション
   validateIp(ip: string): boolean {
     return isValidIp(ip)
   }
-} 
+}
