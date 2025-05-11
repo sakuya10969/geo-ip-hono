@@ -1,53 +1,70 @@
 import { Hono } from 'hono'
-import { isValidIp } from '../utils/ipValidator'
+import { IpService } from '../services/ipService'
+import { ResponseFormatter } from '../utils/responseFormatter'
 
 const geoIp = new Hono()
-
-// IP情報を取得する関数
-async function fetchGeoIp(ip: string) {
-  const url = `https://ipapi.co/${ip}/json/`
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    throw new Error('Geo-IP API呼び出し失敗')
-  }
-
-  const data = await response.json()
-
-  if (data.error) {
-    throw new Error(data.reason || '無効なIPアドレス')
-  }
-
-  return data
-}
+const ipService = new IpService()
 
 // ルートエンドポイント
 geoIp.get('/', (c) => {
-  return c.json({ message: 'Geo-IP APIへようこそ！IPを指定してください。' })
+  return c.json(ResponseFormatter.formatWelcomeResponse())
 })
 
-// Geo-IPエンドポイント
-geoIp.get('/:ip', async (c) => {
+// 自分のIPを取得 (より具体的なルートを先に定義)
+geoIp.get('/self', async (c) => {
+  try {
+    const selfData = await ipService.fetchSelfIp()
+    return c.json(ResponseFormatter.formatGeoIpResponse(selfData))
+  } catch (error: any) {
+    return c.json(ResponseFormatter.formatErrorResponse(error.message), 400)
+  }
+})
+
+// ホスト名を取得
+geoIp.get('/hostname/:ip', async (c) => {
   const ip = c.req.param('ip')
 
-  // IPアドレスバリデーション（4桁のみ許可）
-  if (!isValidIp(ip)) {
-    return c.json({ status: 'error', message: '無効な4桁IPアドレス形式' }, 400)
+  if (!ipService.validateIp(ip)) {
+    return c.json(ResponseFormatter.formatErrorResponse('無効な4桁IPアドレス形式'), 400)
   }
 
   try {
-    const geoData = await fetchGeoIp(ip)
+    const hostname = await ipService.fetchHostname(ip)
+    return c.json(ResponseFormatter.formatHostnameResponse(ip, hostname))
+  } catch (error: any) {
+    return c.json(ResponseFormatter.formatErrorResponse(error.message), 400)
+  }
+})
+
+// ランダムIP情報を取得
+geoIp.get('/random', async (c) => {
+  const ip = ipService.getRandomIp()
+  try {
+    const geoData = await ipService.fetchGeoIp(ip)
+    const response = ResponseFormatter.formatGeoIpResponse(geoData)
     return c.json({
-      ip: geoData.ip,
-      city: geoData.city,
-      region: geoData.region,
-      country_name: geoData.country_name,
-      latitude: geoData.latitude,
-      longitude: geoData.longitude,
-      status: 'success'
+      ...response,
+      generated_ip: ip,
+      generated_at: new Date().toISOString()
     })
   } catch (error: any) {
-    return c.json({ status: 'error', message: error.message }, 400)
+    return c.json(ResponseFormatter.formatErrorResponse(error.message), 400)
+  }
+})
+
+// Geo-IPエンドポイント (最も一般的なルートを最後に定義)
+geoIp.get('/:ip', async (c) => {
+  const ip = c.req.param('ip')
+
+  if (!ipService.validateIp(ip)) {
+    return c.json(ResponseFormatter.formatErrorResponse('無効な4桁IPアドレス形式'), 400)
+  }
+
+  try {
+    const geoData = await ipService.fetchGeoIp(ip)
+    return c.json(ResponseFormatter.formatGeoIpResponse(geoData))
+  } catch (error: any) {
+    return c.json(ResponseFormatter.formatErrorResponse(error.message), 400)
   }
 })
 
