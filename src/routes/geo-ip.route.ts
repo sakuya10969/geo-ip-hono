@@ -2,7 +2,7 @@
 
 import { Hono } from 'hono'
 import { getSelfIp, getHostname, getRandomIp, getGeoIp } from '../handlers/geo-ip.handler'
-import { ResponseFormatter } from '../utils/responseFormatter'
+import { ResponseFormatter } from '../utils/response-formatter'
 
 const geoIp = new Hono()
 

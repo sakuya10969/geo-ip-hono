@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { isValidIp } from '../utils/ipValidator'
+import { isValidIp } from '../utils/ip-validator'
 
 export class GeoIpService {
   private static readonly API_BASE_URL = 'https://ipapi.co'

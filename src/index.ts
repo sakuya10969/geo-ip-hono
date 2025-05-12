@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import geoIp from './routes/geo-ip.route'
-import { cacheMiddleware } from './middlewares/cacheMiddleware'
+import { cacheMiddleware } from './middlewares/cache.middleware'
 
 const app = new Hono()
 

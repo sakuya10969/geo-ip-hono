@@ -2,7 +2,7 @@
 
 import { Context } from 'hono'
 import { GeoIpService } from '../services/geo-ip.service'
-import { ResponseFormatter } from '../utils/responseFormatter'
+import { ResponseFormatter } from '../utils/response-formatter'
 
 const ipService = new GeoIpService()
 
