@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { isValidIp } from '../utils/ipValidator'
 
-export class IpService {
+export class GeoIpService {
   private static readonly API_BASE_URL = 'https://ipapi.co'
   private static readonly DEFAULT_ERROR_MESSAGE = '無効なIPアドレス'
 
@@ -11,7 +11,7 @@ export class IpService {
       const data = response.data
 
       if (data.error) {
-        throw new Error(data.reason || IpService.DEFAULT_ERROR_MESSAGE)
+        throw new Error(data.reason || GeoIpService.DEFAULT_ERROR_MESSAGE)
       }
 
       return data
@@ -22,19 +22,19 @@ export class IpService {
 
   // IP情報を取得
   async fetchGeoIp(ip: string) {
-    const url = `${IpService.API_BASE_URL}/${ip}/json/`
+    const url = `${GeoIpService.API_BASE_URL}/${ip}/json/`
     return this.makeApiRequest(url, 'Geo-IP API呼び出し失敗')
   }
 
   // 自分のIP情報を取得 
   async fetchSelfIp() {
-    const url = `${IpService.API_BASE_URL}/json/`
+    const url = `${GeoIpService.API_BASE_URL}/json/`
     return this.makeApiRequest(url, '自己IP情報取得失敗')
   }
 
   // ホスト名を取得
   async fetchHostname(ip: string) {
-    const url = `${IpService.API_BASE_URL}/${ip}/json/`
+    const url = `${GeoIpService.API_BASE_URL}/${ip}/json/`
     const data = await this.makeApiRequest(url, 'ホスト名取得失敗')
     return data.hostname || 'ホスト名が見つかりません'
   }

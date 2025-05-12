@@ -1,27 +1,21 @@
-import { Hono } from 'hono'
-import { IpService } from '../services/ipService'
+// src/handlers/geoIpHandler.ts
+
+import { Context } from 'hono'
+import { GeoIpService } from '../services/geo-ip.service'
 import { ResponseFormatter } from '../utils/responseFormatter'
 
-const geoIp = new Hono()
-const ipService = new IpService()
+const ipService = new GeoIpService()
 
-// ルートエンドポイント
-geoIp.get('/', (c) => {
-  return c.json(ResponseFormatter.formatWelcomeResponse())
-})
-
-// 自分のIPを取得
-geoIp.get('/self', async (c) => {
+export const getSelfIp = async (c: Context) => {
   try {
     const selfData = await ipService.fetchSelfIp()
     return c.json(ResponseFormatter.formatGeoIpResponse(selfData))
   } catch (error: any) {
     return c.json(ResponseFormatter.formatErrorResponse(error.message), 400)
   }
-})
+}
 
-// ホスト名を取得
-geoIp.get('/hostname/:ip', async (c) => {
+export const getHostname = async (c: Context) => {
   const ip = c.req.param('ip')
 
   if (!ipService.validateIp(ip)) {
@@ -34,26 +28,23 @@ geoIp.get('/hostname/:ip', async (c) => {
   } catch (error: any) {
     return c.json(ResponseFormatter.formatErrorResponse(error.message), 400)
   }
-})
+}
 
-// ランダムIP情報を取得
-geoIp.get('/random', async (c) => {
+export const getRandomIp = async (c: Context) => {
   const ip = ipService.getRandomIp()
   try {
     const geoData = await ipService.fetchGeoIp(ip)
-    const response = ResponseFormatter.formatGeoIpResponse(geoData)
     return c.json({
-      ...response,
+      ...ResponseFormatter.formatGeoIpResponse(geoData),
       generated_ip: ip,
-      generated_at: new Date().toISOString()
+      generated_at: new Date().toISOString(),
     })
   } catch (error: any) {
     return c.json(ResponseFormatter.formatErrorResponse(error.message), 400)
   }
-})
+}
 
-// Geo-IPエンドポイント
-geoIp.get('/:ip', async (c) => {
+export const getGeoIp = async (c: Context) => {
   const ip = c.req.param('ip')
 
   if (!ipService.validateIp(ip)) {
@@ -66,6 +57,4 @@ geoIp.get('/:ip', async (c) => {
   } catch (error: any) {
     return c.json(ResponseFormatter.formatErrorResponse(error.message), 400)
   }
-})
-
-export default geoIp
+}
