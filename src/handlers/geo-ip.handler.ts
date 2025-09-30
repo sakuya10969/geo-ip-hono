@@ -1,5 +1,3 @@
-// src/handlers/geoIpHandler.ts
-
 import { Context } from 'hono'
 import { GeoIpService } from '../services/geo-ip.service'
 import { ResponseFormatter } from '../utils/response-formatter'
